@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · JobTrack{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+  <aside class="sidebar" aria-label="Application navigation">
+    <span class="sidebar-label">WORKSPACE</span>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link is-active" href="{{ url_for('dashboard') }}" aria-current="page">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg> Dashboard
+      </a>
+      <a class="sidebar-link" href="{{ url_for('applications.analytics') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 19.5V12m8 7.5V4.5m8 15v-11" stroke-linecap="round"/></svg> Analytics
+      </a>
+      <a class="sidebar-link" href="{{ url_for('applications.list_applications') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke-linecap="round"/></svg> My Applications
+      </a>
+      <a class="sidebar-link" href="{{ url_for('applications.add_application') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Add Application
+      </a>
+    </nav>
+    <div class="sidebar-account">
+      <span class="account-avatar" aria-hidden="true">{{ username[:1]|upper }}</span>
+      <span class="account-name">{{ username }}</span>
+      <form action="{{ url_for('auth.logout') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="sidebar-logout" type="submit" aria-label="Log out" title="Log out">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M10 17l5-5-5-5m5 5H3m9-9h7a2 2 0 012 2v14a2 2 0 01-2 2h-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <section class="dashboard-main" aria-labelledby="dashboard-title">
+    <div class="dashboard-heading">
+      <div>
+        <span class="form-kicker">YOUR WORKSPACE</span>
+        <h1 id="dashboard-title">Welcome back, {{ username }}<span class="heading-period">.</span></h1>
+        <p>Here’s the latest on your job search. Keep your momentum going.</p>
+      </div>
+      <a class="button button-primary dashboard-add-button" href="{{ url_for('applications.add_application') }}">
+        <span aria-hidden="true">+</span> Add Application
+      </a>
+    </div>
+
+    {% if dashboard_error %}
+      <div class="dashboard-error" role="alert">
+        We couldn’t retrieve your application data. Please refresh to try again.
+      </div>
+    {% else %}
+      <section class="stats-grid" aria-label="Application statistics">
+        <article class="stat-card stat-card-total">
+          <div class="stat-topline"><span>Total applications</span><span class="stat-icon" aria-hidden="true">&#9635;</span></div>
+          <strong>{{ stats["total"] }}</strong>
+          <span class="stat-caption">across your job search</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Applied</span><span class="stat-icon status-icon-applied" aria-hidden="true">&#8599;</span></div>
+          <strong>{{ stats["applied"] }}</strong>
+          <span class="stat-caption">awaiting a response</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Interview</span><span class="stat-icon status-icon-interview" aria-hidden="true">&#9673;</span></div>
+          <strong>{{ stats["interview"] }}</strong>
+          <span class="stat-caption">conversations in progress</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Selected</span><span class="stat-icon status-icon-selected" aria-hidden="true">&#10003;</span></div>
+          <strong>{{ stats["selected"] }}</strong>
+          <span class="stat-caption">offers received</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Rejected</span><span class="stat-icon status-icon-rejected" aria-hidden="true">&#8722;</span></div>
+          <strong>{{ stats["rejected"] }}</strong>
+          <span class="stat-caption">closed applications</span>
+        </article>
+      </section>
+
+      <section class="applications-panel" id="applications" aria-labelledby="applications-title">
+        <div class="panel-heading">
+          <div>
+            <span class="form-kicker">YOUR PIPELINE</span>
+            <h2 id="applications-title">Recent applications</h2>
+          </div>
+          <span class="result-count">{{ applications|length }} shown</span>
+        </div>
+        <form class="application-filters" action="{{ url_for('dashboard') }}#applications" method="get">
+          <label class="search-field">
+            <span class="search-icon" aria-hidden="true">&#9906;</span>
+            <span class="visually-hidden">Search company, role or location</span>
+            <input type="search" name="search" value="{{ search }}"
+                   placeholder="Search company, role or location" maxlength="100">
+          </label>
+          <label class="filter-field">
+            <span class="visually-hidden">Filter by application status</span>
+            <select name="status">
+              <option value="">All statuses</option>
+              {% for status in statuses %}
+                <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button class="button button-filter" type="submit">Apply filters</button>
+          {% if search or selected_status %}
+            <a class="clear-filters" href="{{ url_for('dashboard') }}#applications">Clear</a>
+          {% endif %}
+        </form>
+
+        <div class="table-wrap">
+          <table class="applications-table">
+            <thead>
+              <tr>
+                <th scope="col">Company</th>
+                <th scope="col">Role</th>
+                <th scope="col">Location</th>
+                <th scope="col">Applied</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for application in applications %}
+                <tr>
+                  <td class="company-cell">{{ application["company_name"] }}</td>
+                  <td>{{ application["job_role"] }}</td>
+                  <td>{{ application["job_location"] or "—" }}</td>
+                  <td>{{ application["applied_date"] }}</td>
+                  <td><span class="status-badge status-{{ application['application_status']|lower }}">{{ application["application_status"] }}</span></td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td class="table-empty" colspan="5">
+                    <span class="empty-state-icon" aria-hidden="true">&#10022;</span>
+                    <strong>{% if search or selected_status %}No matching applications{% else %}Your pipeline starts here{% endif %}</strong>
+                    <span>{% if search or selected_status %}Try adjusting your search or status filter.{% else %}Applications you track will appear here.{% endif %}</span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if applications|length == 10 %}
+          <p class="table-footnote">Showing the 10 most recent matches.</p>
+        {% endif %}
+      </section>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

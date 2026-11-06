@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Log in · JobTrack{% endblock %}
+
+{% block content %}
+<section class="auth-layout" aria-labelledby="login-title">
+  <div class="auth-aside">
+    <div class="aside-content">
+      <span class="eyebrow"><span class="eyebrow-dot"></span> YOUR CAREER, IN FOCUS</span>
+      <h1>Make your next move <span>your best one.</span></h1>
+      <p>Keep every application, conversation, and opportunity organized in one clear place.</p>
+      <div class="aside-note">
+        <span class="note-icon" aria-hidden="true">✦</span>
+        <span>A little progress each day adds up to big results.</span>
+      </div>
+    </div>
+    <span class="aside-decoration aside-decoration-one" aria-hidden="true"></span>
+    <span class="aside-decoration aside-decoration-two" aria-hidden="true"></span>
+  </div>
+
+  <div class="auth-main">
+    <div class="auth-card">
+      <div class="mobile-brand"><span class="brand-mark" aria-hidden="true">J</span> jobtrack<span class="brand-period">.</span></div>
+      <span class="form-kicker">WELCOME BACK</span>
+      <h2 id="login-title">Log in to your account</h2>
+      <p class="form-intro">Pick up right where you left off.</p>
+
+      <form class="auth-form" action="{{ url_for('auth.login') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="email" maxlength="254"
+               placeholder="you@example.com" value="{{ email }}" required>
+
+        <div class="label-row">
+          <label for="password">Password</label>
+        </div>
+        <input id="password" name="password" type="password" autocomplete="current-password"
+               minlength="8" maxlength="128" placeholder="Enter your password" required>
+
+        <button class="button button-primary button-full" type="submit">
+          Log in <span aria-hidden="true">&rarr;</span>
+        </button>
+      </form>
+      <p class="auth-switch">New to JobTrack? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+      <p class="form-security"><span aria-hidden="true">&#128274;</span> Your information is private and secure.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics · JobTrack{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+  <aside class="sidebar" aria-label="Application navigation">
+    <span class="sidebar-label">WORKSPACE</span>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="{{ url_for('dashboard') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg> Dashboard
+      </a>
+      <a class="sidebar-link is-active" href="{{ url_for('applications.analytics') }}" aria-current="page">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 19.5V12m8 7.5V4.5m8 15v-11" stroke-linecap="round"/></svg> Analytics
+      </a>
+      <a class="sidebar-link" href="{{ url_for('applications.list_applications') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke-linecap="round"/></svg> My Applications
+      </a>
+      <a class="sidebar-link" href="{{ url_for('applications.add_application') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Add Application
+      </a>
+    </nav>
+    <div class="sidebar-account">
+      <span class="account-avatar" aria-hidden="true">{{ username[:1]|upper }}</span>
+      <span class="account-name">{{ username }}</span>
+      <form action="{{ url_for('auth.logout') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="sidebar-logout" type="submit" aria-label="Log out" title="Log out">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M10 17l5-5-5-5m5 5H3m9-9h7a2 2 0 012 2v14a2 2 0 01-2 2h-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <section class="dashboard-main analytics-main" aria-labelledby="analytics-title">
+    <div class="dashboard-heading">
+      <div>
+        <span class="form-kicker">YOUR JOB SEARCH, AT A GLANCE</span>
+        <h1 id="analytics-title">Analytics<span class="heading-period">.</span></h1>
+        <p>Hi {{ username }}, understand your progress and spot your momentum.</p>
+      </div>
+    </div>
+
+    {% if analytics_error %}
+      <div class="dashboard-error" role="alert">
+        We couldn’t retrieve your analytics. Please refresh to try again.
+      </div>
+    {% else %}
+      <section class="stats-grid analytics-stats" aria-label="Application statistics">
+        <article class="stat-card stat-card-total">
+          <div class="stat-topline"><span>Total applications</span><span class="stat-icon" aria-hidden="true">&#9635;</span></div>
+          <strong>{{ stats["total"] }}</strong>
+          <span class="stat-caption">all tracked opportunities</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Applied</span><span class="stat-icon status-icon-applied" aria-hidden="true">&#8599;</span></div>
+          <strong>{{ stats["applied"] }}</strong>
+          <span class="stat-caption">applications submitted</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Interview</span><span class="stat-icon status-icon-interview" aria-hidden="true">&#9673;</span></div>
+          <strong>{{ stats["interview"] }}</strong>
+          <span class="stat-caption">interviews in progress</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Selected</span><span class="stat-icon status-icon-selected" aria-hidden="true">&#10003;</span></div>
+          <strong>{{ stats["selected"] }}</strong>
+          <span class="stat-caption">offers received</span>
+        </article>
+        <article class="stat-card">
+          <div class="stat-topline"><span>Rejected</span><span class="stat-icon status-icon-rejected" aria-hidden="true">&#8722;</span></div>
+          <strong>{{ stats["rejected"] }}</strong>
+          <span class="stat-caption">closed applications</span>
+        </article>
+      </section>
+
+      {% if stats["total"] == 0 %}
+        <div class="analytics-empty-banner">
+          <strong>No applications yet</strong>
+          <span>Add an application to start building your job search insights.</span>
+          <a href="{{ url_for('applications.add_application') }}">Add application <span aria-hidden="true">&rarr;</span></a>
+        </div>
+      {% endif %}
+
+      <section class="rate-grid" aria-label="Conversion rates">
+        <article class="rate-card">
+          <span class="rate-label">Interview conversion</span>
+          <strong>{{ "%.1f"|format(interview_rate) }}%</strong>
+          <span class="rate-detail">Applications currently at interview stage</span>
+          <span class="rate-track"><span style="width: {{ interview_rate }}%"></span></span>
+        </article>
+        <article class="rate-card rate-card-selection">
+          <span class="rate-label">Selection rate</span>
+          <strong>{{ "%.1f"|format(selection_rate) }}%</strong>
+          <span class="rate-detail">Applications resulting in selection</span>
+          <span class="rate-track"><span style="width: {{ selection_rate }}%"></span></span>
+        </article>
+      </section>
+
+      <section class="analytics-chart-grid" aria-label="Application charts">
+        <article class="analytics-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="form-kicker">STATUS BREAKDOWN</span>
+              <h2>Application statuses</h2>
+            </div>
+          </div>
+          <div class="chart-container chart-doughnut">
+            <canvas id="status-chart" role="img" aria-label="Doughnut chart of application counts by status"></canvas>
+          </div>
+          <p class="chart-empty" hidden>Status chart will appear as you track applications.</p>
+        </article>
+
+        <article class="analytics-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="form-kicker">12-MONTH OVERVIEW</span>
+              <h2>Application activity</h2>
+            </div>
+          </div>
+          <div class="chart-container chart-bars">
+            <canvas id="monthly-chart" role="img" aria-label="Bar chart of applications by month over the last 12 months"></canvas>
+          </div>
+          <p class="chart-empty" hidden>Monthly activity will appear as you track applications.</p>
+        </article>
+      </section>
+
+      <section class="analytics-bottom-grid">
+        <article class="analytics-panel top-companies-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="form-kicker">WHERE YOU’VE APPLIED</span>
+              <h2>Top companies</h2>
+            </div>
+          </div>
+          {% if top_companies %}
+            <ol class="company-ranking">
+              {% for company in top_companies %}
+                <li>
+                  <span class="company-rank">{{ loop.index }}</span>
+                  <span class="company-ranking-name">{{ company["company_name"] }}</span>
+                  <span class="company-ranking-count">{{ company["total"] }} {{ "application" if company["total"] == 1 else "applications" }}</span>
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <p class="analytics-empty-copy">Companies you apply to will appear here.</p>
+          {% endif %}
+        </article>
+
+        <article class="analytics-panel recent-activity-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="form-kicker">LATEST UPDATES</span>
+              <h2>Recent activity</h2>
+            </div>
+            <a class="analytics-view-all" href="{{ url_for('applications.list_applications') }}">View all</a>
+          </div>
+          {% if recent_activity %}
+            <ol class="activity-list">
+              {% for activity in recent_activity %}
+                <li class="activity-item">
+                  <span class="activity-dot status-dot-{{ activity['application_status']|lower }}" aria-hidden="true"></span>
+                  <div class="activity-copy">
+                    <strong>{{ activity["company_name"] }}</strong>
+                    <span>{{ activity["job_role"] }} · <span class="status-text-{{ activity['application_status']|lower }}">{{ activity["application_status"] }}</span></span>
+                  </div>
+                  <time class="activity-date" datetime="{{ activity['created_at'].replace(' ', 'T') }}">{{ activity["applied_date"] }}</time>
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <p class="analytics-empty-copy">Your recent application activity will appear here.</p>
+          {% endif %}
+        </article>
+      </section>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+  {% if not analytics_error %}
+    <script id="analytics-data" type="application/json">{{ chart_data|tojson }}</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"
+            integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC"
+            crossorigin="anonymous" defer></script>
+    <script src="{{ url_for('static', filename='js/analytics.js') }}" defer></script>
+  {% endif %}
+{% endblock %}

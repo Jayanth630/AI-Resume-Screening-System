@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit" if editing else "Add" }} Application · JobTrack{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+  <aside class="sidebar" aria-label="Application navigation">
+    <span class="sidebar-label">WORKSPACE</span>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="{{ url_for('dashboard') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg> Dashboard
+      </a>
+      <a class="sidebar-link" href="{{ url_for('applications.analytics') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 19.5V12m8 7.5V4.5m8 15v-11" stroke-linecap="round"/></svg> Analytics
+      </a>
+      <a class="sidebar-link is-active" href="{{ url_for('applications.list_applications') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke-linecap="round"/></svg> My Applications
+      </a>
+      <a class="sidebar-link" href="{{ url_for('applications.add_application') }}">
+        <svg class="sidebar-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> Add Application
+      </a>
+    </nav>
+    <div class="sidebar-account">
+      <span class="account-avatar" aria-hidden="true">{{ session.get("username", "")[:1]|upper }}</span>
+      <span class="account-name">{{ session.get("username") }}</span>
+      <form action="{{ url_for('auth.logout') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="sidebar-logout" type="submit" aria-label="Log out" title="Log out">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M10 17l5-5-5-5m5 5H3m9-9h7a2 2 0 012 2v14a2 2 0 01-2 2h-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <section class="dashboard-main form-page-main" aria-labelledby="application-form-title">
+    <a class="back-link" href="{{ url_for('applications.list_applications') }}">&larr; Back to applications</a>
+    <div class="dashboard-heading form-page-heading">
+      <div>
+        <span class="form-kicker">{{ "UPDATE DETAILS" if editing else "NEW OPPORTUNITY" }}</span>
+        <h1 id="application-form-title">{{ "Edit application" if editing else "Add an application" }}<span class="heading-period">.</span></h1>
+        <p>{{ "Update the details for this opportunity." if editing else "Capture the details so you can keep your search on track." }}</p>
+      </div>
+    </div>
+
+    <form class="application-edit-form" method="post"
+          action="{{ url_for('applications.edit_application', application_id=application['id']) if editing else url_for('applications.add_application') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="application-form-grid">
+        <label class="application-field">
+          <span>Company name <span class="required-mark">*</span></span>
+          <input name="company_name" type="text" maxlength="120" autocomplete="organization"
+                 value="{{ application.get('company_name', '') }}" placeholder="e.g. Northstar Labs" required>
+        </label>
+        <label class="application-field">
+          <span>Job role <span class="required-mark">*</span></span>
+          <input name="job_role" type="text" maxlength="120"
+                 value="{{ application.get('job_role', '') }}" placeholder="e.g. Product Designer" required>
+        </label>
+        <label class="application-field">
+          <span>Location</span>
+          <input name="job_location" type="text" maxlength="120" autocomplete="address-level2"
+                 value="{{ application.get('job_location') or '' }}" placeholder="e.g. Remote or New York">
+        </label>
+        <label class="application-field">
+          <span>Salary package</span>
+          <input name="salary" type="text" maxlength="80"
+                 value="{{ application.get('salary') or '' }}" placeholder="e.g. $100,000–$120,000">
+        </label>
+        <label class="application-field">
+          <span>Application date <span class="required-mark">*</span></span>
+          <input name="applied_date" type="date"
+                 value="{{ application.get('applied_date', '') }}" required>
+        </label>
+        <label class="application-field">
+          <span>Status <span class="required-mark">*</span></span>
+          <select name="application_status" required>
+            {% for status in statuses %}
+              <option value="{{ status }}" {% if application.get('application_status', 'Applied') == status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="application-field application-field-wide">
+          <span>Job description</span>
+          <textarea name="job_description" rows="5" maxlength="5000"
+                    placeholder="Add notes about the role, requirements, or hiring team...">{{ application.get('job_description') or '' }}</textarea>
+          <span class="field-hint">Up to 5,000 characters.</span>
+        </label>
+      </div>
+      <div class="application-form-actions">
+        <a class="button button-cancel" href="{{ url_for('applications.list_applications') }}">Cancel</a>
+        <button class="button button-primary" type="submit">{{ "Save changes" if editing else "Save application" }} <span aria-hidden="true">&rarr;</span></button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

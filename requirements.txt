@@ -1,0 +1,26 @@
+# Flask web framework
+Flask==3.1.2
+
+# SQLAlchemy integration for Flask
+Flask-SQLAlchemy==3.1.1
+
+# User session and login management
+Flask-Login==0.6.3
+
+# Flask forms, validation, and CSRF protection
+Flask-WTF==1.2.2
+
+# PDF text extraction from resumes
+PyPDF2==3.0.1
+
+# Similarity and machine-learning tools for matching resumes to job descriptions
+scikit-learn==1.6.1
+
+# Tabular data processing
+pandas==2.3.3
+
+# Load environment variables from a .env file
+python-dotenv==1.1.1
+
+# Email address validation
+email-validator==2.3.0

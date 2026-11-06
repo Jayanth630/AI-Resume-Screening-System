@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>{% block title %}JobTrack{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('dashboard') if session.get('user_id') else url_for('auth.login') }}" aria-label="JobTrack home">
+      <span class="brand-mark" aria-hidden="true">J</span>
+      <span>jobtrack<span class="brand-period">.</span></span>
+    </a>
+    {% if session.get('user_id') %}
+      <nav class="site-nav" aria-label="Main navigation">
+        <span class="nav-greeting">Hi, {{ session.get('username') }}</span>
+      </nav>
+    {% endif %}
+  </header>
+
+  <main>
+    <div class="flash-region" aria-live="polite" aria-atomic="true">
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash flash-{{ category }} toast" role="{{ 'alert' if category == 'error' else 'status' }}">
+          <span>{{ message }}</span>
+          <button class="flash-dismiss" type="button" aria-label="Dismiss message">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>Stay organized. Find your next opportunity.</span>
+    <span>&copy; {{ 2026 }} JobTrack</span>
+  </footer>
+  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+  {% block page_scripts %}{% endblock %}
+</body>
+</html>
