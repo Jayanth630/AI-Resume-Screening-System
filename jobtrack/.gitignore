@@ -1,0 +1,6 @@
+
+# Local database
+instance/
+*.db
+*.sqlite
+*.sqlite3
